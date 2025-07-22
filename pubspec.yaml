@@ -1,8 +1,8 @@
 name: flutter_water_flow
 description: A high-performance, easy-to-use, and stable Flutter waterfall flow component library.
 version: 1.0.0
-homepage: https://github.com/xmaddx/flutter_water_flow
-repository: https://github.com/xmaddx/flutter_water_flow
+homepage: https://github.com/superxabc/flutter_water_flow
+repository: https://github.com/superxabc/flutter_water_flow
 environment:
   sdk: '>=3.0.0 <4.0.0'
   flutter: ">=3.0.0"
