@@ -1,7 +1,9 @@
 // lib/src/models/info_flow_card_model.dart
-import 'package:flutter_water_flow/flutter_water_flow.dart';
+import 'water_flow_base_item.dart';
+import 'water_flow_item.dart';
 
-class InfoFlowCardModel {
+class InfoFlowCardModel implements WaterFlowBaseItem {
+  @override
   final WaterFlowItemType type;
   final String imageUrl;
   final double aspectRatio;

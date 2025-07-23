@@ -1,22 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'models/water_flow_base_item.dart';
 import 'models/water_flow_item.dart';
 
-class WaterFlow extends StatelessWidget {
+class WaterFlow<T extends WaterFlowBaseItem> extends StatelessWidget {
   const WaterFlow.builder({
     super.key,
     required this.itemBuilder,
     required this.itemCount,
     this.columnCount = 2,
-    this.spacing = 0.5,
-    this.crossAxisSpacing = 0.5,
-    this.padding = const EdgeInsets.only(left: 1.0, right: 1.0),
+    this.spacing = 4.0,
+    this.crossAxisSpacing = 4.0,
+    this.padding = const EdgeInsets.all(4.0),
     this.getItemType,
     this.onLoadMore,
+    this.loadMoreThreshold = 100.0,
     this.onRefresh,
     this.addAutomaticKeepAlives = true,
     this.addRepaintBoundaries = true,
     this.addSemanticIndexes = true,
+    this.backgroundColor = const Color(0xFFF2F2F7),
   });
 
   final Widget Function(BuildContext context, int index) itemBuilder;
@@ -27,10 +30,12 @@ class WaterFlow extends StatelessWidget {
   final EdgeInsets? padding;
   final WaterFlowItemType Function(int index)? getItemType;
   final VoidCallback? onLoadMore;
+  final double loadMoreThreshold;
   final Future<void> Function()? onRefresh;
   final bool addAutomaticKeepAlives;
   final bool addRepaintBoundaries;
   final bool addSemanticIndexes;
+  final Color? backgroundColor;
 
   @override
   Widget build(BuildContext context) {
@@ -56,7 +61,7 @@ class WaterFlow extends StatelessWidget {
       onNotification: (ScrollNotification notification) {
         if (onLoadMore != null &&
             notification is ScrollEndNotification &&
-            notification.metrics.extentAfter < 100) {
+            notification.metrics.extentAfter < loadMoreThreshold) {
           Future.microtask(onLoadMore!);
         }
         return false;
@@ -72,7 +77,7 @@ class WaterFlow extends StatelessWidget {
     }
 
     return Container(
-      color: const Color(0xFFF2F2F7), // iOS风格浅灰色背景
+      color: backgroundColor,
       child: scrollableView,
     );
   }

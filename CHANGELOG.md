@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.1.0] - 2024-07-23
+
+### ✨ 新增功能
+- `WaterFlow` 组件新增 `loadMoreThreshold` 参数，支持自定义加载更多触发距离。
+- `WaterFlow` 组件新增 `backgroundColor` 参数，支持自定义背景颜色。
+- `WaterFlow` 组件支持泛型 `T extends WaterFlowBaseItem`，提升类型安全性与扩展性。
+
+### 🏗️ 架构优化
+- 调整 `WaterFlow` 组件默认间距：`spacing` 和 `crossAxisSpacing` 默认值调整为 `2.0`，`padding` 默认值调整为 `EdgeInsets.all(2.0)`。
+- 引入 `WaterFlowBaseItem` 抽象类，作为所有信息流 Item 数据模型的基类，方便后续扩展图文、视频、文本等卡片类型。
+- `WaterFlowItem` 和 `InfoFlowCardModel` 已继承 `WaterFlowBaseItem`。
+- `InfoFlowCard` 组件的 `Image.network` 添加 `loadingBuilder` 和 `errorBuilder`，优化图片加载体验。
+
+### 📚 文档更新
+- 更新 `README.md` 中 `WaterFlow.builder` 参数说明及示例代码，反映新的默认间距和新增参数。
+- `README.md` 新增关于如何扩展新卡片类型的部分，强调 Item Widget 根组件 `margin: EdgeInsets.zero` 的原则。
+
 ## [1.0.0] - 2024-12-19
 
 ### ✨ 新增功能

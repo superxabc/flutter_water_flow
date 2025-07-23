@@ -59,9 +59,9 @@ import 'package:flutter_water_flow/flutter_water_flow.dart';
 WaterFlow.builder(
   columnCount: 2,                    // 列数
   itemCount: 100,                    // item总数
-  spacing: 8.0,                      // 垂直间距
-  crossAxisSpacing: 8.0,             // 水平间距
-  padding: EdgeInsets.all(8.0),      // 内边距
+  spacing: 2.0,                      // 垂直间距 (默认值)
+  crossAxisSpacing: 2.0,             // 水平间距 (默认值)
+  padding: EdgeInsets.all(2.0),      // 内边距 (默认值)
   itemBuilder: (context, index) {
     return Container(
       height: (index % 5 + 1) * 60.0, // 动态高度
@@ -86,9 +86,9 @@ WaterFlow.builder(
 WaterFlow.builder(
   columnCount: 2,
   itemCount: items.length,
-  spacing: 8.0,
-  crossAxisSpacing: 8.0,
-  padding: EdgeInsets.all(8.0),
+  spacing: 2.0,
+  crossAxisSpacing: 2.0,
+  padding: EdgeInsets.all(2.0),
   
   // 类型识别
   getItemType: (index) {
@@ -152,15 +152,17 @@ WaterFlow.builder(
 | `itemBuilder` | `Widget Function(BuildContext, int)` | **必需** | item构建器 |
 | `itemCount` | `int` | **必需** | item总数 |
 | `columnCount` | `int` | `2` | 列数 |
-| `spacing` | `double` | `8.0` | 垂直间距 |
-| `crossAxisSpacing` | `double` | `8.0` | 水平间距 |
-| `padding` | `EdgeInsets?` | `null` | 内边距 |
+| `spacing` | `double` | `2.0` | 垂直间距 |
+| `crossAxisSpacing` | `double` | `2.0` | 水平间距 |
+| `padding` | `EdgeInsets?` | `EdgeInsets.all(2.0)` | 内边距 |
 | `getItemType` | `WaterFlowItemType Function(int)?` | `null` | 类型识别函数 |
 | `onLoadMore` | `VoidCallback?` | `null` | 加载更多回调 |
+| `loadMoreThreshold` | `double` | `100.0` | 加载更多触发距离 |
 | `onRefresh` | `Future<void> Function()?` | `null` | 下拉刷新回调 |
 | `addAutomaticKeepAlives` | `bool` | `true` | 自动保持状态 |
 | `addRepaintBoundaries` | `bool` | `true` | 重绘边界 |
 | `addSemanticIndexes` | `bool` | `true` | 语义索引 |
+| `backgroundColor` | `Color?` | `Color(0xFFF2F2F7)` | 背景颜色 |
 
 ### WaterFlowItemType 枚举
 
@@ -233,6 +235,7 @@ class _MyFeedPageState extends State<MyFeedPage> {
       _items.addAll(List.generate(10, (i) {
         final index = _items.length + i;
         return InfoFlowCardModel(
+          type: WaterFlowItemType.normal, // 明确指定类型
           imageUrl: 'https://picsum.photos/seed/$index/400/${500 + index % 2 * 100}',
           title: '这是第 $index 个卡片的标题，内容非常精彩',
           authorAvatarUrl: 'https://i.pravatar.cc/50?u=$index',
@@ -252,7 +255,7 @@ class _MyFeedPageState extends State<MyFeedPage> {
       body: WaterFlow.builder(
         columnCount: 2,
         itemCount: _items.length,
-        padding: const EdgeInsets.all(8.0),
+        padding: const EdgeInsets.all(2.0), // 使用新的默认间距
         onLoadMore: _loadMoreData,
         onRefresh: _onRefresh,
         itemBuilder: (context, index) {
@@ -271,6 +274,118 @@ class _MyFeedPageState extends State<MyFeedPage> {
   }
 }
 ```
+
+### 扩展新的信息流卡片类型
+
+当您需要新增不同类型的信息流卡片（如图文卡片、视频卡片、文本卡片等）时，请遵循以下原则以确保间距统一和良好的可扩展性：
+
+1.  **定义新的数据模型**：
+    *   为每种新的卡片类型创建对应的数据模型，并确保它们都继承自 `WaterFlowBaseItem`。
+    *   `WaterFlowBaseItem` 抽象类定义了所有信息流 Item 必须包含的 `type` 属性，用于 `WaterFlow` 组件进行类型识别。
+
+    ```dart
+    // 示例：lib/src/models/video_card_model.dart
+    import 'package:flutter_water_flow/flutter_water_flow.dart';
+
+    class VideoCardModel implements WaterFlowBaseItem {
+      @override
+      final WaterFlowItemType type; // 必须包含
+      final String videoUrl;
+      final String thumbnailUrl;
+      // ... 其他视频卡片特有的数据
+
+      const VideoCardModel({
+        required this.type,
+        required this.videoUrl,
+        required this.thumbnailUrl,
+      });
+    }
+    ```
+
+2.  **创建新的 Item Widget**：
+    *   为每种新的卡片类型创建对应的 Flutter Widget，用于渲染其特定的 UI。
+    *   **关键原则：所有 Item Widget 的根 Widget 必须没有外部 `margin` 或 `padding`。** `WaterFlow` 组件已经负责管理 Item 之间的间距和整体内边距。任何 Item 自身带有的外部间距都会与 `WaterFlow` 设置的间距叠加，导致不一致。
+    *   **示例**：
+        ```dart
+        // 示例：lib/src/widgets/video_card.dart
+        import 'package:flutter/material.dart';
+        import 'package:flutter_water_flow/flutter_water_flow.dart';
+
+        class VideoCard extends StatelessWidget {
+          final VideoCardModel data;
+          const VideoCard({super.key, required this.data});
+
+          @override
+          Widget build(BuildContext context) {
+            return Card(
+              margin: EdgeInsets.zero, // 确保没有外部margin
+              clipBehavior: Clip.antiAlias,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(6.0),
+              ),
+              elevation: 0,
+              child: Column(
+                children: [
+                  // 视频缩略图、播放按钮等UI
+                  AspectRatio(
+                    aspectRatio: 16 / 9,
+                    child: Image.network(
+                      data.thumbnailUrl,
+                      fit: BoxFit.cover,
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return InfoFlowCardSkeleton(aspectRatio: 16 / 9); // 使用骨架屏
+                      },
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          color: Colors.grey[200],
+                          child: const Center(
+                            child: Icon(
+                              Icons.broken_image,
+                              color: Colors.grey,
+                              size: 40,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(data.videoUrl, maxLines: 2, overflow: TextOverflow.ellipsis),
+                  ),
+                ],
+              ),
+            );
+          }
+        }
+        ```
+
+3.  **在 `WaterFlow.builder` 中进行条件渲染**：
+    *   在 `WaterFlow.builder` 的 `itemBuilder` 回调中，根据 Item 的 `type` 属性（通过 `getItemType` 获取）来渲染不同的 Widget。
+    *   确保 `getItemType` 能够正确识别所有新的卡片类型。
+
+    ```dart
+    WaterFlow.builder<WaterFlowBaseItem>( // 使用泛型
+      columnCount: 2,
+      itemCount: _items.length,
+      onLoadMore: _loadMoreData,
+      onRefresh: _onRefresh,
+      getItemType: (index) => _items[index].type, // 直接从数据模型获取类型
+      itemBuilder: (context, index) {
+        final itemData = _items[index];
+        if (itemData.type == WaterFlowItemType.normal || itemData.type == WaterFlowItemType.ad) {
+          return InfoFlowCard(data: itemData as InfoFlowCardModel);
+        } else if (itemData.type == WaterFlowItemType.video) { // 假设新增了 WaterFlowItemType.video
+          return VideoCard(data: itemData as VideoCardModel);
+        }
+        // ... 其他卡片类型
+        return Container(); // 默认或错误处理
+      },
+    )
+    ```
+
+通过遵循这些原则，您可以灵活地扩展 `flutter_water_flow` 以支持各种信息流卡片类型，同时确保整个瀑布流布局的间距保持一致和美观。
 
 ### 自定义item点击
 
